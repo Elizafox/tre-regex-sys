@@ -11,7 +11,7 @@ Feature flags
 The following features are available:
 
 - `approx`: Enable approximate matching functionality (enabled by default)
-- `vendored`: Enable vendored build copy of TRE instead of system TRE (enabled by default)
+- `vendored`: Enable vendored build copy of TRE instead of system TRE (disabled by default)
 - `wchar`: Enable functions designed to work with `wchar_t` (disabled by default)
 
 Supported versions
