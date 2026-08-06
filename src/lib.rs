@@ -241,36 +241,37 @@ mod tests {
         struct Data<'a>(pub &'a [u8], pub usize);
 
         #[inline(never)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         unsafe extern "C" fn get_next_char(
             c: *mut tre_char_t,
             pos_add: *mut c_uint,
             context: *mut c_void,
         ) -> c_int {
             let data = context as *mut Data;
-            let string = (*data).0;
-            let i = (*data).1;
+            let (string, i) = unsafe { ((*data).0, (*data).1) };
 
             if i >= string.len() {
-                *c = b'\0' as tre_char_t;
+                unsafe { *c = b'\0' as tre_char_t };
                 return -1;
             }
 
-            *c = string[i] as tre_char_t;
-            *pos_add = 1;
-            (*data).1 += 1;
+            unsafe {
+                *c = string[i] as tre_char_t;
+                *pos_add = 1;
+                (*data).1 += 1;
+            }
             0
         }
 
         #[inline(never)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         unsafe extern "C" fn rewind(pos: usize, context: *mut c_void) {
             let data = context as *mut Data;
-            (*data).1 = pos;
+            unsafe { (*data).1 = pos };
         }
 
         #[inline(never)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         unsafe extern "C" fn compare(
             pos1: usize,
             pos2: usize,
@@ -278,7 +279,7 @@ mod tests {
             context: *mut c_void,
         ) -> c_int {
             let data = context as *mut Data;
-            let string = (*data).0;
+            let string = unsafe { (*data).0 };
             let slen = string.len();
 
             if pos1 > slen || pos2 > slen {
