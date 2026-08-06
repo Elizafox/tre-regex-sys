@@ -15,7 +15,7 @@ fn main() {
     #[cfg(feature = "vendored")]
     {
         use autotools::Config;
-        use fs_extra::dir::{copy, remove, CopyOptions};
+        use fs_extra::dir::{CopyOptions, copy, remove};
         use std::process::Command;
 
         let tre_path = out_path.join("tre");

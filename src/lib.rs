@@ -4,6 +4,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -123,6 +124,116 @@ mod tests {
         assert!(pmatch[1].rm_eo == 12, "Bad ending offset for match group");
     }
 
+    #[cfg(feature = "vendored")]
+    #[test]
+    fn regnexecb_with_embedded_nul() {
+        let pattern = b"a\0b";
+        let string = b"xxa\0byy";
+        let mut preg = mem::MaybeUninit::<regex_t>::uninit();
+
+        assert_eq!(
+            unsafe {
+                tre_regncompb(
+                    preg.as_mut_ptr(),
+                    pattern.as_ptr().cast(),
+                    pattern.len(),
+                    REG_EXTENDED as c_int,
+                )
+            },
+            0
+        );
+        let mut preg = unsafe { preg.assume_init() };
+        let mut pmatch = regmatch_t::default();
+
+        assert_eq!(
+            unsafe {
+                tre_regnexecb(
+                    &preg,
+                    string.as_ptr().cast(),
+                    string.len(),
+                    1,
+                    &mut pmatch,
+                    0,
+                )
+            },
+            0
+        );
+        assert_eq!(pmatch.rm_so, 2);
+        assert_eq!(pmatch.rm_eo, 5);
+
+        unsafe { tre_regfree(&mut preg) };
+    }
+
+    #[cfg(feature = "vendored")]
+    #[test]
+    fn regexecb_with_non_utf8_bytes() {
+        let mut preg = mem::MaybeUninit::<regex_t>::uninit();
+        assert_eq!(
+            unsafe {
+                tre_regcompb(
+                    preg.as_mut_ptr(),
+                    b"\xff\0".as_ptr().cast(),
+                    REG_EXTENDED as c_int,
+                )
+            },
+            0
+        );
+        let mut preg = unsafe { preg.assume_init() };
+        let mut pmatch = regmatch_t::default();
+
+        assert_eq!(
+            unsafe { tre_regexecb(&preg, b"x\xff\0".as_ptr().cast(), 1, &mut pmatch, 0,) },
+            0
+        );
+        assert_eq!(pmatch.rm_so, 1);
+        assert_eq!(pmatch.rm_eo, 2);
+
+        unsafe { tre_regfree(&mut preg) };
+    }
+
+    #[cfg(all(feature = "vendored", feature = "approx"))]
+    #[test]
+    fn regaexecb_with_non_utf8_bytes() {
+        let mut preg = mem::MaybeUninit::<regex_t>::uninit();
+        assert_eq!(
+            unsafe {
+                tre_regcompb(
+                    preg.as_mut_ptr(),
+                    b"\xff\0".as_ptr().cast(),
+                    REG_EXTENDED as c_int,
+                )
+            },
+            0
+        );
+        let mut preg = unsafe { preg.assume_init() };
+        let params = regaparams_t {
+            cost_ins: 1,
+            cost_del: 1,
+            cost_subst: 1,
+            max_cost: 1,
+            max_del: 1,
+            max_ins: 1,
+            max_subst: 1,
+            max_err: 1,
+        };
+        let mut pmatch = regmatch_t::default();
+        let mut amatch = regamatch_t {
+            nmatch: 1,
+            pmatch: &mut pmatch,
+            ..Default::default()
+        };
+
+        assert_eq!(
+            unsafe { tre_regaexecb(&preg, b"\xfe\0".as_ptr().cast(), &mut amatch, params, 0,) },
+            0
+        );
+        assert_eq!(amatch.cost, 1);
+        assert_eq!(pmatch.rm_so, 0);
+        assert_eq!(pmatch.rm_eo, 1);
+
+        unsafe { tre_regfree(&mut preg) };
+    }
+
     #[test]
     fn reguexec() {
         use std::ffi::{c_int, c_uint, c_void};
@@ -141,11 +252,11 @@ mod tests {
             let i = (*data).1;
 
             if i >= string.len() {
-                *c = b'\0';
+                *c = b'\0' as tre_char_t;
                 return -1;
             }
 
-            *c = string[i];
+            *c = string[i] as tre_char_t;
             *pos_add = 1;
             (*data).1 += 1;
             0

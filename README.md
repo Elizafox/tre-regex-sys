@@ -16,4 +16,6 @@ The following features are available:
 
 Supported versions
 ==================
-At least TRE 0.8.0 should work, but the latest from [git](https://github.com/laurikari/tre) is highly recommended for various fixes; the last release is quite old by this point.
+The vendored build uses TRE 0.9.0. System builds support TRE 0.8.0 or newer,
+although TRE 0.9.0 is recommended for its additional byte-oriented APIs and
+bug fixes.
