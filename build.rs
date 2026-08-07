@@ -8,6 +8,37 @@ use std::path::PathBuf;
 
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+
+    println!("cargo:rerun-if-env-changed=DOCS_RS");
+
+    // rustdoc only needs the Rust declarations; it never links or executes TRE.
+    // Avoid running Autotools on docs.rs, whose sandbox does not support all of
+    // the filesystem operations used by autopoint when it unpacks gettext data.
+    if env::var_os("DOCS_RS").is_some() {
+        let mut config = String::from(
+            "#define HAVE_SYS_TYPES_H 1\n\
+             #define TRE_VERSION \"0.9.0\"\n\
+             #define TRE_VERSION_1 0\n\
+             #define TRE_VERSION_2 9\n\
+             #define TRE_VERSION_3 0\n",
+        );
+        if cfg!(feature = "approx") {
+            config.push_str("#define TRE_APPROX 1\n");
+        }
+        if cfg!(feature = "wchar") {
+            config.push_str("#define HAVE_WCHAR_H 1\n#define TRE_WCHAR 1\n");
+        }
+
+        std::fs::write(out_path.join("tre-config.h"), config)
+            .expect("Could not write documentation-only TRE configuration");
+        generate_bindings(
+            &out_path,
+            "tre/local_includes/tre.h".to_string(),
+            vec![format!("-I{}", out_path.display())],
+        );
+        return;
+    }
+
     let include_path;
     #[allow(unused_mut)]
     let mut clang_args: Vec<String> = Vec::new();
@@ -120,6 +151,10 @@ esac
         include_path = "sys-wrapper.h".to_string();
     }
 
+    generate_bindings(&out_path, include_path, clang_args);
+}
+
+fn generate_bindings(out_path: &std::path::Path, include_path: String, clang_args: Vec<String>) {
     let mut bindings = bindgen::Builder::default()
         .clang_args(clang_args)
         .header(include_path)
