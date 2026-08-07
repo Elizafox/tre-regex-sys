@@ -66,9 +66,9 @@ jobs:
 
       - name: Test
         if: runner.os != 'Windows'
-        run: cargo test --locked ${{ matrix.build.features }}
+        run: cargo test ${{ matrix.build.features }}
 
       - name: Test (Windows GNU)
         if: runner.os == 'Windows'
         shell: msys2 {0}
-        run: cargo test --locked --target x86_64-pc-windows-gnu ${{ matrix.build.features }}
+        run: cargo test --target x86_64-pc-windows-gnu ${{ matrix.build.features }}
