@@ -32,11 +32,12 @@ fn main() {
 
         // Generate the config script.
         // I hate autotools so much.
-        Command::new("sh")
+        let status = Command::new("sh")
             .current_dir(&tre_path)
             .args(["-c", "./utils/autogen.sh"])
             .status()
             .expect("Could not run autogen.sh! Is autotools installed?");
+        assert!(status.success(), "autogen.sh failed with {status}");
 
         // This is messy, I know, but rustc complains otherwise.
         let mut cfg = Config::new(&tre_path);

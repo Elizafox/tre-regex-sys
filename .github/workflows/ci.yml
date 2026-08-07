@@ -33,7 +33,7 @@ jobs:
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install --yes autoconf automake libtool libtre-dev
+        run: sudo apt-get update && sudo apt-get install --yes autoconf automake gettext libtool libtre-dev
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
