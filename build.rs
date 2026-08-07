@@ -65,7 +65,12 @@ fn main() {
             dst.join("lib").display()
         );
         println!("cargo:rustc-link-lib=static=tre");
-        println!("cargo:rustc-link-lib=c");
+        // Rust's Windows GNU target links the C runtime as `msvcrt`.  Asking
+        // MinGW for the Unix-style `libc` as well produces `-lc`, which does
+        // not exist in a MinGW installation.
+        if env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows") {
+            println!("cargo:rustc-link-lib=c");
+        }
 
         let pathbuf = out_path.join("include").join("tre").join("tre.h");
         include_path = pathbuf.to_str().unwrap().to_string();
