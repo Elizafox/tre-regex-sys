@@ -44,6 +44,10 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
+          # Automake 1.18 does not handle the action's relocated
+          # D:\a\_temp\msys64 aclocal paths correctly. Use the runner's
+          # system installation at C:\msys64 instead.
+          release: false
           update: true
           path-type: inherit
           install: >-
