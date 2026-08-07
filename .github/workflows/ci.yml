@@ -48,6 +48,7 @@ jobs:
           path-type: inherit
           install: >-
             base-devel
+            gettext-devel
             mingw-w64-x86_64-autotools
             mingw-w64-x86_64-clang
             mingw-w64-x86_64-gcc
