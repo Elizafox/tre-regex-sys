@@ -104,7 +104,15 @@ esac
 
         // This is messy, I know, but rustc complains otherwise.
         let mut cfg = Config::new(&tre_path);
-        let dst = cfg.enable_static().disable_shared().disable("agrep", None);
+        // The bindings do not need translated TRE diagnostics. In particular,
+        // allowing configure to detect gettext on MSYS2 makes the static TRE
+        // archive depend on libintl without recording that transitive link
+        // dependency for Cargo (and libintl may itself require iconv).
+        let dst = cfg
+            .enable_static()
+            .disable_shared()
+            .disable("agrep", None)
+            .disable("nls", None);
 
         let dst = if cfg!(feature = "wchar") {
             dst.enable("wchar", None)
