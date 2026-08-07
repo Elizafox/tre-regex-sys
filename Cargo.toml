@@ -1,6 +1,6 @@
 [package]
 name = "tre-regex-sys"
-version = "0.5.1"
+version = "0.5.2"
 edition = "2024"
 description = "Rust bindgen bindings to the TRE regex module"
 readme = "README.md"
