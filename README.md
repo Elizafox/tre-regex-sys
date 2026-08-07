@@ -24,3 +24,9 @@ Supported versions
 The vendored build uses TRE 0.9.0. System builds support TRE 0.8.0 or newer,
 although TRE 0.9.0 is recommended for its additional byte-oriented APIs and
 bug fixes.
+
+Contributing
+============
+
+Contributions are welcome. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md)
+and guidelines set out by the [Developer Certificate of Origin](DCO).
